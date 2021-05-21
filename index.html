@@ -156,10 +156,9 @@
                 .style("stroke-width", 0)
                 .style("fill", d => d.properties.fill)
 
-            states 
-                .style("fill", "none")
-                .style("stroke", "#333")
+            states
                 .style("stroke-width", 1.0)
+                .raise()
 
             svg.select(".fips-" + d.properties.fips)
                 .style("stroke", "black")
@@ -186,19 +185,19 @@
 
             counties.on("mouseout", (event, d) => {
                 
-                console.log(event)
+                // console.log(event)
                 counties
                     .style("stroke-width", 0)
                     .style("fill", d => d.properties.fill)
-                
-                states 
-                    .style("fill", "none")
-                    .style("stroke", "#333")
-                    .style("stroke-width", 1.0)
 
                 popup
                     .style("opacity", 0)
 
+
+                states
+                    .style("stroke-width", 1.0)
+                    .raise()
+                    
             })
 
 
