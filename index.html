@@ -156,6 +156,11 @@
                 .style("stroke-width", 0)
                 .style("fill", d => d.properties.fill)
 
+            states 
+                .style("fill", "none")
+                .style("stroke", "#333")
+                .style("stroke-width", 1.0)
+
             svg.select(".fips-" + d.properties.fips)
                 .style("stroke", "black")
                 .style("stroke-width", 2)
@@ -185,6 +190,11 @@
                 counties
                     .style("stroke-width", 0)
                     .style("fill", d => d.properties.fill)
+                
+                states 
+                    .style("fill", "none")
+                    .style("stroke", "#333")
+                    .style("stroke-width", 1.0)
 
                 popup
                     .style("opacity", 0)
