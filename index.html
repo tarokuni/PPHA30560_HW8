@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        .chart-container {
+            max-width: 1050px;
+            /* border: 3px solid red; */
+            margin: 0 auto;
+            /* auto centers the div */
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        svg {
+            /* border: 2px solid purple; */
+            overflow: visible;
+        }
+
+
+        h1 {
+            text-align: center;
+            font-size: 35px;
+            /* border: 2px solid green; */
+        }
+
+
+        .pop-up {
+            position: absolute; 
+            border: 2px solid black;
+            border-radius: 1px;
+            line-height: 1.2;
+            width: 200px;
+            pointer-events: none;
+            background-color: white;
+            padding: 10px;
+        }
+
+
+        .filler .source {
+            text-align: right;
+            margin-top: 20px;
+            margin-right: 100px;
+            font-size: 18px;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        .legend{
+            position: absolute;
+            margin-left: 650px;
+            width: 250px;
+        }
+
+
+    </style>
+    <!-- add your script blocks at the end -->
+
+</head>
+
+<body>
+    <section>
+        <div class="chart-container">
+
+            <h1 class="headline">
+                COVID-19 cases by county (as of May 19, 2021)
+            </h1>
+
+            
+            <object data="simple-key.svg" class="legend"></object>
+            <svg width="1050px" height="500px"></svg>
+            <div class="pop-up"></div>
+
+        </div>
+    </section>
+
+    <section class='filler'>
+        <p class="source">Source: The New York Times (case number), US Census Bureau (population)</p>
+    </section>
+</body>
+
+
+<!-- we're using d3 version 6 (the latest version) for all out work -->
+<script src="https://d3js.org/d3.v6.min.js"></script>
+
+<!-- load topojson script -->
+<script src="https://unpkg.com/topojson@3"></script>
+
+<script>
+    // console.log({ d3 })
+    // console.log({ topojson })
+
+    // //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+    Promise.all([ //waits for all the data to load, then when loaded will return it all in one array called res
+        d3.json('data.json'),
+    ])
+        .then(ready)
+        .catch((err) => {
+            console.log(err);
+        });
+
+    function ready(res) {
+        // console.log(res[0])
+        let raw = res[0]
+
+        let county = topojson.feature(raw, raw.objects.county);
+        let state = topojson.feature(raw, raw.objects.state);
+
+        let width = 1050;
+        let height = 500;
+
+        console.log(county, state)
+
+        let svg = d3.select("body").select("svg")
+
+        let myProjection = d3.geoAlbersUsa()
+            .fitSize([width, height], county)
+
+        // path function
+        let path = d3.geoPath()
+            .projection(myProjection)
+
+
+        // // let scalefunction = d3.scaleSqrt()
+        // //     .domain([])
+        // //     .range([])
+            
+        let counties = svg
+            .selectAll(".counties")
+            .data(county.features)
+            .join("path")
+            .attr("d", path)
+            .style("fill", d => d.properties.fill)
+            .attr("class", function (d) { 
+                // console.log(d)
+                return "fips-" + d.properties.fips
+            })
+            .style("stroke-width", 0)
+
+        
+         let states =  svg
+            .selectAll(".states")
+            .data(state.features)
+            .join("path")
+            .attr("d", path)
+            .style("fill", "none")
+            .style("stroke", "#333")
+            .style("stroke-width", 1.0)
+            .style("pointer-events", "none")
+
+
+        let popup = d3.select(".pop-up").style("opacity", 0);
+
+        counties.on("mouseover", (event, d) => {
+
+            counties
+                .style("stroke-width", 0)
+                .style("fill", d => d.properties.fill)
+
+            svg.select(".fips-" + d.properties.fips)
+                .style("stroke", "black")
+                .style("stroke-width", 2)
+                .style("fill", "yellow")
+                .style("fill-opacity", 1)
+                .raise()
+
+            let reScaleLang = d3.scaleThreshold()
+                .domain([0]) //make sure to put this in brackets!
+                .range(["below", "above"])
+
+            let lang = "In <strong> " + d.properties.NAMELSAD + ", " + d.properties.state + ", " 
+            lang += d3.format(".1f")(d.properties.cases_per_pop100) + "</strong> people have been infected by COVID-19 per 100 residents."
+
+            popup
+                .style("opacity", 1)
+                .style("left", (event.x - 150) + "px")
+                .style("top", (event.y - 140) + "px")
+                .html(lang)
+
+            })
+
+
+            counties.on("mouseout", (event, d) => {
+                
+                console.log(event)
+                counties
+                    .style("stroke-width", 0)
+                    .style("fill", d => d.properties.fill)
+
+                popup
+                    .style("opacity", 0)
+
+            })
+
+
+
+    }
+
+
+
+
+
+
+
+</script>
